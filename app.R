@@ -20,7 +20,7 @@ ui <- fluidPage(
   )
 )
 
-# Define server
+# Define server  
 server <- function(input, output) {
   # Calculate total expenses
   total_expenses <- reactive({
