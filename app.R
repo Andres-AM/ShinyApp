@@ -5,14 +5,14 @@ library(dplyr)
 
 # UI
 ui <- fluidPage(
-  titlePanel("Boxplot Visualization"),
+  titlePanel("Boxplot and Jitter Plot"),
   sidebarLayout(
     sidebarPanel(
       sliderInput("bins", "Number of Bins:", min = 1, max = 30, value = 10),
-      selectInput("species", "Filter by Species:", choices = c("", unique(iris$Species)))
+      selectInput("variable", "Select Variable:", choices = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"))
     ),
     mainPanel(
-      plotOutput("boxplot")
+      plotOutput("plot")
     )
   )
 )
@@ -22,20 +22,22 @@ server <- function(input, output) {
   # Load the iris dataset
   dataset <- iris
   
-  # Filter the dataset based on species
+  # Filter the dataset based on variable
   filteredData <- reactive({
-    if (input$species != "") {
-      dataset %>% filter(Species == input$species)
-    } else {
-      dataset
-    }
+    dataset
   })
   
-  # Generate boxplot
-  output$boxplot <- renderPlot({
-    ggplot(filteredData(), aes(x = Species, y = Sepal.Length)) +
-      geom_boxplot() +
-      labs(title = "Boxplot", y = "Sepal Length")
+  # Generate boxplot and jitter plot
+  output$plot <- renderPlot({
+    p <- ggplot(filteredData(), aes(x = Species, y = .data[[input$variable]], fill = Species)) +
+      geom_boxplot(alpha = 0.5, outlier.shape = NA) +
+      geom_jitter(aes(color = Species), width = 0.2, height = 0, size = 2, alpha = 0.5) +
+      labs(title = "Boxplot and Jitter Plot", y = input$variable) +
+      scale_fill_brewer(palette = "Set1") +
+      scale_color_brewer(palette = "Set1") +
+      theme_minimal()
+    
+    p
   })
 }
 
