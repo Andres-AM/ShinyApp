@@ -1,37 +1,43 @@
-
-
-# Load libraries
+# Required libraries
 library(shiny)
+library(ggplot2)
+library(dplyr)
 
-# Define UI
+# UI
 ui <- fluidPage(
-  titlePanel("Monthly Expenses Calculator"),
+  titlePanel("Boxplot Visualization"),
   sidebarLayout(
     sidebarPanel(
-      numericInput("rent", "Rent", value = 0),
-      numericInput("utilities", "Utilities", value = 0),
-      numericInput("groceries", "Groceries", value = 0),
-      numericInput("transportation", "Transportation", value = 0),
-      numericInput("entertainment", "Entertainment", value = 0)
+      sliderInput("bins", "Number of Bins:", min = 1, max = 30, value = 10),
+      textInput("species", "Filter by Species:")
     ),
     mainPanel(
-      textOutput("total_expenses")
+      plotOutput("boxplot")
     )
   )
 )
 
-# Define server  
+# Server
 server <- function(input, output) {
-  # Calculate total expenses
-  total_expenses <- reactive({
-    input$rent + input$utilities + input$groceries + input$transportation + input$entertainment
+  # Load the iris dataset
+  dataset <- iris
+  
+  # Filter the dataset based on species
+  filteredData <- reactive({
+    if (input$species != "") {
+      dataset %>% filter(Species == input$species)
+    } else {
+      dataset
+    }
   })
-
-  # Render total expenses
-  output$total_expenses <- renderText({
-    paste("Total Monthly Expenses: $", total_expenses())
+  
+  # Generate boxplot
+  output$boxplot <- renderPlot({
+    ggplot(filteredData(), aes(x = Species, y = Sepal.Length)) +
+      geom_boxplot() +
+      labs(title = "Boxplot", y = "Sepal Length")
   })
 }
 
-# Run the application
-shinyApp(ui = ui, server = server)
+# Run the app
+shinyApp(ui, server)
