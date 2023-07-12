@@ -9,7 +9,7 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       sliderInput("bins", "Number of Bins:", min = 1, max = 30, value = 10),
-      textInput("species", "Filter by Species:")
+      selectInput("species", "Filter by Species:", choices = c("", unique(iris$Species)))
     ),
     mainPanel(
       plotOutput("boxplot")
