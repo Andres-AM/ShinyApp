@@ -27,46 +27,50 @@ ui <- fluidPage(
     )
   )
 )
-
 # Server
 server <- function(input, output, session) {
+  # Determine the common sample size
+  n <- reactive({
+    max(input$n1, input$n2)
+  })
+
   # Generate dataset 1 using rnorm
   dataset1 <- reactive({
-    data <- rnorm(input$n1, mean = input$mean1, sd = input$sd1)
+    data <- rnorm(n(), mean = input$mean1, sd = input$sd1)
     data
   })
-  
+
   # Generate dataset 2 using rnorm
   dataset2 <- reactive({
-    data <- rnorm(input$n2, mean = input$mean2, sd = input$sd2)
+    data <- rnorm(n(), mean = input$mean2, sd = input$sd2)
     data
   })
-  
-# Generate density plot with colored groups
-output$plot <- renderPlot({
-  data <- data.frame(
-    Group = rep(c("Group 1", "Group 2"), each = c(input$n1, input$n2)),
-    Value = c(dataset1(), dataset2())
-  )
-  
-  p <- ggplot(data, aes(x = Value, fill = Group)) +
-    geom_density(alpha = 0.5) +
-    labs(title = "Density Plot Visualization", x = "Value", y = "Density") +
-    scale_fill_manual(values = c("Group 1" = "blue", "Group 2" = "red")) +
-    theme_minimal()
-  
-  # Add mean lines for each group
-  p <- p +
-    geom_vline(
-      data = data %>% group_by(Group) %>% summarise(mean_value = mean(Value)),
-      aes(xintercept = mean_value, color = Group),
-      linetype = "dashed",
-      size = 1
+
+  # Generate density plot with colored groups
+  output$plot <- renderPlot({
+    data <- data.frame(
+      Group = rep(c("Group 1", "Group 2"), each = n()),
+      Value = c(dataset1(), dataset2())
     )
-  
-  p
-})
-  
+
+    p <- ggplot(data, aes(x = Value, fill = Group)) +
+      geom_density(alpha = 0.5) +
+      labs(title = "Density Plot Visualization", x = "Value", y = "Density") +
+      scale_fill_manual(values = c("Group 1" = "red", "Group 2" = "blue")) +
+      theme_minimal()
+
+    # Add mean lines for each group
+    p <- p +
+      geom_vline(
+        data = data %>% group_by(Group) %>% summarise(mean_value = mean(Value)),
+        aes(xintercept = mean_value, color = Group),
+        linetype = "dashed",
+        size = 1.5
+      )
+
+    p
+  })
+
   # Refresh button event
   observeEvent(input$refresh, {
     updateNumericInput(session, "n1", value = 200)
@@ -78,6 +82,7 @@ output$plot <- renderPlot({
     updateSliderInput(session, "bins", value = 0.2)
   })
 }
+
 
 # Run the app
 shinyApp(ui, server)
