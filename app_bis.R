@@ -42,21 +42,30 @@ server <- function(input, output, session) {
     data
   })
   
-  # Generate density plot with colored groups
-  output$plot <- renderPlot({
-    data <- data.frame(
-      Group = rep(c("Group 1", "Group 2"), each = c(input$n1, input$n2)),
-      Value = c(dataset1(), dataset2())
+# Generate density plot with colored groups
+output$plot <- renderPlot({
+  data <- data.frame(
+    Group = rep(c("Group 1", "Group 2"), each = c(input$n1, input$n2)),
+    Value = c(dataset1(), dataset2())
+  )
+  
+  p <- ggplot(data, aes(x = Value, fill = Group)) +
+    geom_density(alpha = 0.5) +
+    labs(title = "Density Plot Visualization", x = "Value", y = "Density") +
+    scale_fill_manual(values = c("Group 1" = "blue", "Group 2" = "red")) +
+    theme_minimal()
+  
+  # Add mean lines for each group
+  p <- p +
+    geom_vline(
+      data = data %>% group_by(Group) %>% summarise(mean_value = mean(Value)),
+      aes(xintercept = mean_value, color = Group),
+      linetype = "dashed",
+      size = 1
     )
-    
-    p <- ggplot(data, aes(x = Value, fill = Group)) +
-      geom_density(alpha = 0.5) +
-      labs(title = "Density Plot Visualization", x = "Value", y = "Density") +
-      scale_fill_manual(values = c("Group 1" = "blue", "Group 2" = "red")) +
-      theme_minimal()
-    
-    p
-  })
+  
+  p
+})
   
   # Refresh button event
   observeEvent(input$refresh, {
