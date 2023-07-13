@@ -4,4 +4,4 @@ The following is a brief Shiny App for data visualisation.
 
 ## Preview  
 
-![Alt text](Images/image.jpg)
+![Alt text](image.jpg)
